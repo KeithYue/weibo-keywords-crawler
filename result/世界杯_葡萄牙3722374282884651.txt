@@ -1,0 +1,1 @@
+{"screen_name": "\u592e\u89c6\u65b0\u95fb", "user_profile": "http://weibo.com/cctvxinwen", "text": "", "created_at": {"$date": 1402995450000}, "mid": "3722374282884651", "repost_count": 9301, "source": "\u5fae\u535a weibo.com", "comment_count": 2144, "like_count": 2764, "keywords": ["\u4e16\u754c\u676f", "\u8461\u8404\u7259"]}

@@ -1,0 +1,1 @@
+{"screen_name": "\u4e94\u884c\u5c5e\u4e8c", "user_profile": "http://weibo.com/u/1790597487", "text": "", "created_at": {"$date": 1402968980000}, "mid": "3722263259881742", "repost_count": 1668, "source": "iPhone 5s", "comment_count": 442, "like_count": 804, "keywords": ["\u4e16\u754c\u676f", "\u8461\u8404\u7259"]}

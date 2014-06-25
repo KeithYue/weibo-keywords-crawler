@@ -1,0 +1,1 @@
+{"screen_name": "klose", "user_profile": "http://weibo.com/aimv", "text": "", "created_at": {"$date": 1402966881000}, "mid": "3722254455769320", "repost_count": 1562, "source": "WeicoPro", "comment_count": 185, "like_count": 380, "keywords": ["\u4e16\u754c\u676f", "\u8461\u8404\u7259"]}
