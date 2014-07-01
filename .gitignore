@@ -54,3 +54,6 @@ docs/_build/
 
 *.dat
 
+# the test result file
+result/
+
