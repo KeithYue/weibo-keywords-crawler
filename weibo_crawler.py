@@ -1,7 +1,7 @@
 # coding=utf-8
-import urllib
-import urllib2
-import urlparse
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
+import urllib.parse
 import re
 import time
 import datetime
@@ -66,16 +66,16 @@ class WeiboLogin():
             submit_button = self.driver.find_element_by_xpath('//div[@node-type="normal_form"]//a[@class="W_btn_g"]')
             submit_button.click()
         except TimeoutException:
-            print 'load login page failed'
+            print('load login page failed')
             return False
         try:
             WebDriverWait(self.driver, 5).until(
                     lambda x: x.find_element_by_class_name('WB_left_nav')
                     )
-            print 'login success'
+            print('login success')
             return True
         except TimeoutException:
-            print 'login failed', self.driver.current_url
+            print('login failed', self.driver.current_url)
             self.driver.get_screenshot_as_file('./login_failed.png')
             return False
 
@@ -97,18 +97,18 @@ class WeiboLogin():
                 submit_button.click()
             except TimeoutException:
                 # there is no submit button, so the user may have authorized the app
-                print 'the user has authorized the app'
+                print('the user has authorized the app')
 
             # parse the code
             # print driver.current_url
-            query_str = urlparse.urlparse(driver.current_url).query
-            code = urlparse.parse_qs(query_str)['code']
+            query_str = urllib.parse.urlparse(driver.current_url).query
+            code = urllib.parse.parse_qs(query_str)['code']
 
             c.set_code(code)
-            print 'authorize the app success! code,', code
+            print('authorize the app success! code,', code)
             return c
         else:
-            print 'login failed'
+            print('login failed')
             return None
 
 class WeiboCrawler():
@@ -120,9 +120,9 @@ class WeiboCrawler():
         self.driver = webdriver.PhantomJS()
         self.wl = WeiboLogin(USER_NAME, PASSWD, self.driver)
         if self.wl.login():
-            print 'login successfully'
+            print('login successfully')
         else:
-            print 'login faied'
+            print('login faied')
             sys.exit(1)
         self.sk = search_key.strip()
         return
@@ -136,12 +136,12 @@ class WeiboCrawler():
         '''
         results = []
         # get the mids from each result page
-        pages = range(1, page_count+1)
+        pages = list(range(1, page_count+1))
         random.shuffle(pages)
 
         for i in pages:
             url_to_crawl = self.get_search_url(i)
-            print 'crawling page', i, url_to_crawl
+            print('crawling page', i, url_to_crawl)
             self.driver.get(url_to_crawl)
             # wait the page loading the content
             try:
@@ -149,10 +149,10 @@ class WeiboCrawler():
                         lambda x: x.find_elements_by_class_name('feed_list')
                         )
             except TimeoutException:
-                print 'there is no weibo content in', url_to_crawl
-                print 'you are considered as a robot'
-                print driver.page_source
-                print driver.current_url
+                print('there is no weibo content in', url_to_crawl)
+                print('you are considered as a robot')
+                print(driver.page_source)
+                print(driver.current_url)
                 self.driver.get_screenshot_as_file('./error.png')
                 break
             weibo_list = self.get_weibo_list(self.driver.page_source) # mid is used to crawl the original weibo content, using batch mode
@@ -163,7 +163,7 @@ class WeiboCrawler():
 
         # for r in results:
         #     print_dict(r)
-        print 'total result', len(results)
+        print('total result', len(results))
 
         self.results = results
 
@@ -173,14 +173,14 @@ class WeiboCrawler():
         '''
         compose a search url based on page_num and weibo type
         '''
-        print 'generating the url'
+        print('generating the url')
         url=''
         url += 'http://'
         url += search_domain
         url += '/wb'
-        url += urllib.quote('/'+self.sk)
+        url += urllib.parse.quote('/'+self.sk)
         url += '&'
-        url += urllib.urlencode([
+        url += urllib.parse.urlencode([
             ('page', page),
             ('xsort', w_type)
             ])
@@ -202,7 +202,7 @@ class WeiboCrawler():
                 weibo = self.parse_weibo(t)
                 if weibo:
                     weibo_list.append(weibo)
-        print len(weibo_list)
+        print(len(weibo_list))
         return weibo_list
 
     def parse_weibo(self, t):
@@ -236,12 +236,12 @@ class WeiboCrawler():
 
             pop_type = {
                     # key: source representation, value: attr
-                    u'赞': 'like_count',
-                    u'转发': 'repost_count',
-                    u'评论': 'comment_count'
+                    '赞': 'like_count',
+                    '转发': 'repost_count',
+                    '评论': 'comment_count'
                     }
-            for key in pop_type.keys():
-                pattern = re.compile(ur'.*(%s\((\d+)\)).*' % key)
+            for key in list(pop_type.keys()):
+                pattern = re.compile(r'.*(%s\((\d+)\)).*' % key)
                 match = pattern.match(pop_str)
                 if match:
                     # print match.group(1)
@@ -252,7 +252,7 @@ class WeiboCrawler():
                     weibo[pop_type[key]] = 0
 
         except Exception as e:
-            print e
+            print(e)
             return None
 
         # print_dict(weibo)
@@ -266,13 +266,14 @@ class WeiboCrawler():
             os.mkdir(dist_dir)
         for w in self.results:
             file_name = ''.join([
-                    '_'.join([unicode(k, 'utf-8') for k in w['keywords']]),
+                    '_'.join([k for k in w['keywords']]),
                     w['mid']
                     ])
             file_name += '.txt'
             f = codecs.open(os.path.join(dist_dir, file_name), 'w', 'utf-8')
-            json.dump(w, f, default=json_util.default)
-            print 'writed to file', file_name
+            json.dump(w, f, ensure_ascii = False, default=json_util.default)
+            print(w['text'])
+            print('writed to file', file_name)
         return
 
 def print_dict(d):
@@ -282,14 +283,14 @@ def print_dict(d):
     d: dict
     '''
     for key in d:
-        print key+':',
+        print(key+':', end=' ')
         if type(d[key]) == list:
             for i in d[key]:
-                print i,
+                print(i, end=' ')
         else:
-            print d[key],
+            print(d[key], end=' ')
 
-        print
+        print()
     return
 
 

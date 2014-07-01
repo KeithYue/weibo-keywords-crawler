@@ -1,1 +1,0 @@
-{"screen_name": "\u4eba\u6c11\u65e5\u62a5", "user_profile": "http://weibo.com/rmrb", "text": "", "created_at": {"$date": 1402969922000}, "mid": "3722267210824422", "repost_count": 3769, "source": "\u5fae\u535a weibo.com", "comment_count": 657, "like_count": 825, "keywords": ["\u4e16\u754c\u676f", "\u8461\u8404\u7259"]}
