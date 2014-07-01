@@ -294,7 +294,7 @@ def print_dict(d):
 
 
 def test():
-    wc = WeiboCrawler('世界杯 葡萄牙')
+    wc = WeiboCrawler('李荣浩')
     wc.crawl(1)
     wc.save()
     # wl = WeiboLogin(USER_NAME, PASSWD, driver)
