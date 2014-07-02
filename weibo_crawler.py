@@ -19,6 +19,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from weibo_comments_crawler import WeiboCommentsCrawler
 
 search_domain = 's.weibo.com'
 weibo_type = ('hot', 'time')
@@ -79,46 +80,44 @@ class WeiboLogin():
             self.driver.get_screenshot_as_file('./login_failed.png')
             return False
 
-    def authorize_app(self, app_data):
+    def authorize_app(self, app_data = APP_DATA):
         '''
         authorize the app
         return the client for invoding weibo api
+        must be invoked after the login function
         '''
-        if self.login():
-            c = Client(*app_data)
-            self.driver.get(c.authorize_url)
-            try:
-                WebDriverWait(driver, 10).until(
-                        lambda x: x.find_element_by_css_selector('div.oauth_login_submit')
-                        )
-                # print driver.page_source
-                submit_button = driver.find_element_by_css_selector('p.oauth_formbtn').find_element_by_tag_name('a')
+        c = Client(*app_data)
+        self.driver.get(c.authorize_url)
+        try:
+            WebDriverWait(self.driver, 10).until(
+                    lambda x: x.find_element_by_css_selector('div.oauth_login_submit')
+                    )
+            # print driver.pagself.e_source
+            submit_button = self.driver.find_element_by_css_selector('p.oauth_formbtn').find_element_by_tag_name('a')
 
-                submit_button.click()
-            except TimeoutException:
-                # there is no submit button, so the user may have authorized the app
-                print('the user has authorized the app')
+            submit_button.click()
+        except TimeoutException:
+            # there is no submit button, so the user may have authorized the app
+            print('the user has authorized the app')
 
-            # parse the code
-            # print driver.current_url
-            query_str = urllib.parse.urlparse(driver.current_url).query
-            code = urllib.parse.parse_qs(query_str)['code']
+        # parse the code
+        # print driver.current_url
+        query_str = urllib.parse.urlparse(self.driver.current_url).query
+        code = urllib.parse.parse_qs(query_str)['code']
 
-            c.set_code(code)
-            print('authorize the app success! code,', code)
-            return c
-        else:
-            print('login failed')
-            return None
+        c.set_code(code)
+        print('authorize the app success! code,', code)
+        return c
 
 class WeiboCrawler():
     '''
     crawl weibo using keywords
     '''
-    def __init__(self, search_key):
+    def __init__(self, search_key, user_name, passwd):
         # login to sinaweibo
         self.driver = webdriver.PhantomJS()
-        self.wl = WeiboLogin(USER_NAME, PASSWD, self.driver)
+        self.wl = WeiboLogin(user_name, passwd, self.driver) # the interface for authorization
+
         if self.wl.login():
             print('login successfully')
         else:
@@ -131,35 +130,39 @@ class WeiboCrawler():
         self.driver.quit()
         return
 
-    def crawl(self, page_count=1):
+    def crawl(self, page_count=1, comments=False):
         '''
+        crawl the weibo using the keywords
+
+        page_count: how many pages would be crawled
         '''
         results = []
         # get the mids from each result page
         pages = list(range(1, page_count+1))
         random.shuffle(pages)
 
-        for i in pages:
-            url_to_crawl = self.get_search_url(i)
-            print('crawling page', i, url_to_crawl)
-            self.driver.get(url_to_crawl)
-            # wait the page loading the content
-            try:
-                element = WebDriverWait(self.driver, 5).until(
-                        lambda x: x.find_elements_by_class_name('feed_list')
-                        )
-            except TimeoutException:
-                print('there is no weibo content in', url_to_crawl)
-                print('you are considered as a robot')
-                print(driver.page_source)
-                print(driver.current_url)
-                self.driver.get_screenshot_as_file('./error.png')
-                break
-            weibo_list = self.get_weibo_list(self.driver.page_source) # mid is used to crawl the original weibo content, using batch mode
-            results.extend(weibo_list)
+        for t in ('hot', 'time'):
+            for i in pages:
+                url_to_crawl = self.get_search_url(i)
+                print('crawling page', i, url_to_crawl)
+                self.driver.get(url_to_crawl)
+                # wait the page loading the content
+                try:
+                    element = WebDriverWait(self.driver, 5).until(
+                            lambda x: x.find_elements_by_class_name('feed_list')
+                            )
+                except TimeoutException:
+                    print('there is no weibo content in', url_to_crawl)
+                    print('you are considered as a robot')
+                    print(driver.page_source)
+                    print(driver.current_url)
+                    self.driver.get_screenshot_as_file('./error.png')
+                    break
+                weibo_list = self.get_weibo_list(self.driver.page_source) # mid is used to crawl the original weibo content, using batch mode
+                results.extend(weibo_list)
 
-            # sleep some time to prevent hitting too much
-            time.sleep(5)
+                # sleep some time to prevent hitting too much
+                time.sleep(5)
 
         # for r in results:
         #     print_dict(r)
@@ -167,6 +170,9 @@ class WeiboCrawler():
 
         self.results = results
 
+        if comments:
+            print('crawling the comments')
+            self.crawl_comments()
         return
 
     def get_search_url(self, page=1, w_type='hot'):
@@ -224,6 +230,7 @@ class WeiboCrawler():
 
             # the content of weibo
             weibo['text'] = t.find(name='dd', class_='content').find('em').get_text().strip()
+            # print(weibo['text'])
 
             # meta data
             epoch_length = len(str(int(time.time())))
@@ -272,8 +279,28 @@ class WeiboCrawler():
             file_name += '.txt'
             f = codecs.open(os.path.join(dist_dir, file_name), 'w', 'utf-8')
             json.dump(w, f, ensure_ascii = False, default=json_util.default)
-            print(w['text'])
+            # print(w['text'])
             print('writed to file', file_name)
+        return
+
+    def crawl_comments(self):
+        '''
+        crawl the comments after getting all the results and update the results list --> self
+        '''
+        client = self.wl.authorize_app()
+        if client:
+            for w in self.results:
+                # print(w['mid'])
+                w['comments'] = []
+                crawler = WeiboCommentsCrawler(client, weibo_mid = w['mid'])
+                r = crawler.crawl()
+
+                # filter out the unrelated fields
+                for c in r:
+                    c.pop('status')
+                w['comments'].extend(r)
+        else:
+            print('认证失败，不能获取评论列表')
         return
 
 def print_dict(d):
@@ -289,14 +316,13 @@ def print_dict(d):
                 print(i, end=' ')
         else:
             print(d[key], end=' ')
-
         print()
     return
 
 
 def test():
-    wc = WeiboCrawler('李荣浩')
-    wc.crawl(1)
+    wc = WeiboCrawler('HKUST', USER_NAME, PASSWD)
+    wc.crawl(1, comments = True)
     wc.save()
     # wl = WeiboLogin(USER_NAME, PASSWD, driver)
     # c = wl.authorize_app(APP_DATA)
