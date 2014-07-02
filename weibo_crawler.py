@@ -29,9 +29,9 @@ weibo_type = ('hot', 'time')
 # driver.set_window_size(1440, 900)
 
 # config the app data for authorization
-APP_KEY = '185362843'
-APP_SECRET = 'd6669fc08c76edbb0c300f7f238a8373'
-CALLBACK_URI = 'http://keithyue.github.io'
+APP_KEY = '3544297892'
+APP_SECRET = '4e49761d581b7f80e0954a984e32a242'
+CALLBACK_URI = 'http://lifecity.sinaapp.com'
 APP_DATA = (APP_KEY, APP_SECRET, CALLBACK_URI)
 
 USER_NAME = 'buaakeith@163.com'
@@ -230,6 +230,10 @@ class WeiboCrawler():
 
             # the content of weibo
             weibo['text'] = t.find(name='dd', class_='content').find('em').get_text().strip()
+            # the source url of the weibo
+            weibo['source_url'] = t.find(name='a', class_='date').get('href').strip()
+            print(weibo['source_url'])
+
             # print(weibo['text'])
 
             # meta data
