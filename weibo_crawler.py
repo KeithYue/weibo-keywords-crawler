@@ -282,7 +282,7 @@ class WeiboCrawler():
                     ])
             file_name += '.txt'
             f = codecs.open(os.path.join(dist_dir, file_name), 'w', 'utf-8')
-            json.dump(w, f, ensure_ascii = False, default=json_util.default)
+            json.dump(w, f, ensure_ascii = False, default=json_util.default, indent = 2)
             # print(w['text'])
             print('writed to file', file_name)
         return
