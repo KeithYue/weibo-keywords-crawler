@@ -37,6 +37,16 @@ APP_DATA = (APP_KEY, APP_SECRET, CALLBACK_URI)
 USER_NAME = 'buaakeith@163.com'
 PASSWD = '5805880'
 
+
+def save_source(html_content):
+    '''
+    this function is used for debugging
+    '''
+    file_path = './screenshot/error.html'
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+    return
+
 class WeiboLogin():
     def __init__(self, username, passwd, driver):
         self.username = username
@@ -51,7 +61,6 @@ class WeiboLogin():
                     )
             # print self.driver.page_source
             self.driver.maximize_window()
-            self.driver.get_screenshot_as_file('./screenshot.png')
             user_input = self.driver.find_element_by_xpath('//div[@node-type="normal_form"]//input[@name="username"]')
 
             # print user_input.get_attribute('action-data')
@@ -65,6 +74,8 @@ class WeiboLogin():
             passwd_input.send_keys(self.passwd)
 
             submit_button = self.driver.find_element_by_xpath('//div[@node-type="normal_form"]//a[@class="W_btn_g"]')
+
+            self.driver.get_screenshot_as_file('./screenshot/screenshot.png')
             submit_button.click()
         except TimeoutException:
             print('load login page failed')
@@ -77,7 +88,7 @@ class WeiboLogin():
             return True
         except TimeoutException:
             print('login failed', self.driver.current_url)
-            self.driver.get_screenshot_as_file('./login_failed.png')
+            self.driver.get_screenshot_as_file('./screenshot/login_failed.png')
             return False
 
     def authorize_app(self, app_data = APP_DATA):
@@ -154,9 +165,9 @@ class WeiboCrawler():
                 except TimeoutException:
                     print('there is no weibo content in', url_to_crawl)
                     print('you are considered as a robot')
-                    print(driver.page_source)
-                    print(driver.current_url)
-                    self.driver.get_screenshot_as_file('./error.png')
+                    print(self.driver.current_url)
+                    save_source(self.driver.page_source)
+                    self.driver.get_screenshot_as_file('./screenshot/error.png')
                     break
                 weibo_list = self.get_weibo_list(self.driver.page_source) # mid is used to crawl the original weibo content, using batch mode
                 results.extend(weibo_list)
@@ -325,8 +336,8 @@ def print_dict(d):
 
 
 def test():
-    wc = WeiboCrawler('HKUST', USER_NAME, PASSWD)
-    wc.crawl(1, comments = True)
+    wc = WeiboCrawler('港独', USER_NAME, PASSWD)
+    wc.crawl(50, comments = False)
     wc.save()
     # wl = WeiboLogin(USER_NAME, PASSWD, driver)
     # c = wl.authorize_app(APP_DATA)
