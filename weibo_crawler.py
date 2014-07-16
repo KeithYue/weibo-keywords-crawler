@@ -29,7 +29,7 @@ from weibo_login import WeiboLogin
 search_domain = 's.weibo.com'
 weibo_type = ('hot', 'time')
 
-USER_NAME = 'buaawangyue@gmail.com'
+USER_NAME = 'buaakeith@163.com'
 PASSWD = '5805880'
 
 
