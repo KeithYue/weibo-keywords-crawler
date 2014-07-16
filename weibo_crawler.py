@@ -24,19 +24,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from code_verification import verify_user
 from weibo_comments_crawler import WeiboCommentsCrawler
+from weibo_login import WeiboLogin
 
 search_domain = 's.weibo.com'
 weibo_type = ('hot', 'time')
-
-# setup browser driver
-# driver = webdriver.PhantomJS()
-# driver.set_window_size(1440, 900)
-
-# config the app data for authorization
-APP_KEY = '3544297892'
-APP_SECRET = '4e49761d581b7f80e0954a984e32a242'
-CALLBACK_URI = 'http://lifecity.sinaapp.com'
-APP_DATA = (APP_KEY, APP_SECRET, CALLBACK_URI)
 
 USER_NAME = '14714320465'
 PASSWD = '5805880'
@@ -51,83 +42,6 @@ def save_source(html_content):
         f.write(html_content)
     return
 
-class WeiboLogin():
-    def __init__(self, username, passwd, driver):
-        self.username = username
-        self.passwd = passwd
-        self.driver = driver
-
-    def login(self):
-        self.driver.get('http://www.weibo.com/login.php')
-        try:
-            WebDriverWait(self.driver, 10).until(
-                    lambda x: x.find_element_by_css_selector('div.info_list')
-                    )
-            # print self.driver.page_source
-            self.driver.maximize_window()
-            user_input = self.driver.find_element_by_xpath('//div[@node-type="normal_form"]//input[@name="username"]')
-
-            # print user_input.get_attribute('action-data')
-            user_input.click()
-            user_input.clear()
-            user_input.send_keys(self.username)
-
-            passwd_input = self.driver.find_element_by_xpath('//div[@node-type="normal_form"]//input[@name="password"]')
-            passwd_input.click()
-            passwd_input.clear()
-            # print passwd_input
-            passwd_input.send_keys(self.passwd)
-
-            submit_button = self.driver.find_element_by_xpath('//div[@node-type="normal_form"]//a[@class="W_btn_g"]')
-
-            self.driver.get_screenshot_as_file('./screenshot/screenshot.png')
-        except TimeoutException:
-            print('load login page failed')
-            return False
-
-        print('user name', user_input.get_attribute('value'))
-        print('passwd', passwd_input.get_attribute('value'))
-        submit_button.click()
-        try:
-            WebDriverWait(self.driver, 10).until(
-                    lambda x: x.find_element_by_class_name('WB_left_nav')
-                    )
-            print('login success')
-            return True
-
-        except TimeoutException:
-            print('login failed', self.driver.current_url)
-            self.driver.get_screenshot_as_file('./screenshot/login_failed.png')
-            return False
-
-    def authorize_app(self, app_data = APP_DATA):
-        '''
-        authorize the app
-        return the client for invoding weibo api
-        must be invoked after the login function
-        '''
-        c = Client(*app_data)
-        self.driver.get(c.authorize_url)
-        try:
-            WebDriverWait(self.driver, 10).until(
-                    lambda x: x.find_element_by_css_selector('div.oauth_login_submit')
-                    )
-            # print driver.pagself.e_source
-            submit_button = self.driver.find_element_by_css_selector('p.oauth_formbtn').find_element_by_tag_name('a')
-
-            submit_button.click()
-        except TimeoutException:
-            # there is no submit button, so the user may have authorized the app
-            print('the user has authorized the app')
-
-        # parse the code
-        # print driver.current_url
-        query_str = urllib.parse.urlparse(self.driver.current_url).query
-        code = urllib.parse.parse_qs(query_str)['code']
-
-        c.set_code(code)
-        print('authorize the app success! code,', code)
-        return c
 
 class WeiboCrawler():
     '''
@@ -331,23 +245,6 @@ class WeiboCrawler():
         else:
             print('认证失败，不能获取评论列表')
         return
-
-def print_dict(d):
-    '''
-    print the fields of dictionary
-
-    d: dict
-    '''
-    for key in d:
-        print('{}:'.format(key), end=' ')
-        if type(d[key]) == list:
-            for i in d[key]:
-                print(i, end=' ')
-        else:
-            print(d[key], end=' ')
-        print()
-    return
-
 
 def test():
     wc = WeiboCrawler('火影忍者', USER_NAME, PASSWD)
