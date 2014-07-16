@@ -7,8 +7,11 @@ from selenium.common.exceptions import NoSuchElementException
 from PIL import Image
 from io import StringIO, BytesIO
 from threading import Lock
+from synchronize_util import synchronized
 
 # This module is for code verification
+
+VERIFY_LOCK = Lock() # Every time there would be only one input propmt for users
 
 get_image_data = '''
 function getBase64Image(img) {
@@ -57,7 +60,7 @@ def get_img(base64_str):
 
 def get_code(img):
     '''
-    given an image, return its code
+    given an image, return its code, each time only one image could be served --> the code string
     '''
     img.show()
     verification_code = input('Please input the verificaiont code: ')
@@ -65,7 +68,7 @@ def get_code(img):
 
 
 
-def verify_user(driver):
+def verify_user_for_search(driver):
     '''
     when the driver shows the verification code, load the code in the browser and input the code-->the code
 
@@ -77,13 +80,7 @@ def verify_user(driver):
             # there is no feed in this page, meaning you need to input the code
             code_png = get_img(driver.execute_script(get_image_data))
 
-            INPUT_LOCK.acquire()
-            try:
-                verification_code = get_code(code_png)# this action needs to be primitive
-            finally:
-                INPUT_LOCK.release()
-
-            # need to close the image
+            verification_code = get_code(code_png)# this action needs to be primitive
 
             code_input = driver.find_element_by_xpath('//input[@node-type="yzm_input"]')
             code_input.click()
@@ -100,7 +97,46 @@ def verify_user(driver):
     print('verification completed!')
     return
 
-INPUT_LOCK = Lock() # Every time there would be only one input propmt for users
+def verify_user_for_login(driver):
+    '''
+    因为使用循环登陆，所以此验证码只保证一次，与搜索验证码的情况不同
+    '''
+    if not driver.find_element_by_xpath('//img[@node-type="verifycode_image"]'):
+        print('There is no verfication code here, continue')
+        return
+    else:
+        # get png, the image instance of PIL
+        png_element = driver.find_element_by_xpath('//img[@node-type="verifycode_image"]')
+        location = png_element.location
+        size = png_element.size
+        im = get_img(driver.get_screenshot_as_base64())
+        left = location['x']
+        top = location['y']
+        right = location['x'] + size['width']
+        bottom = location['y'] + size['height']
+        im = im.crop((left, top, right, bottom)) # defines crop points
+
+        verification_code = get_code(im)
+
+        code_input = driver.find_element_by_xpath('//input[@name="verifycode"]')
+        code_input.click()
+        code_input.send_keys(verification_code.strip())
+        return
+
+
+@synchronized(VERIFY_LOCK) # this method is primitive
+def verify_user(driver, v_type):
+    '''
+    v_type: string, 'search', 'login'
+    '''
+    if v_type == 'search':
+        verify_user_for_search(driver)
+    elif v_type == 'login':
+        verify_user_for_login(driver)
+    else:
+        print('Unknown verification type')
+        return
+
 
 if __name__ == '__main__':
     test()

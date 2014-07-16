@@ -29,7 +29,7 @@ from weibo_login import WeiboLogin
 search_domain = 's.weibo.com'
 weibo_type = ('hot', 'time')
 
-USER_NAME = '14714320465'
+USER_NAME = 'buaawangyue@gmail.com'
 PASSWD = '5805880'
 
 
@@ -92,7 +92,7 @@ class WeiboCrawler():
                     self.driver.get_screenshot_as_file('./screenshot/error.png')
 
                     # let user input the verification code
-                    verify_user(self.driver)
+                    verify_user(self.driver, 'search')
                     # break
 
 

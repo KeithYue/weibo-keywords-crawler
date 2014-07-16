@@ -3,6 +3,7 @@
 import urllib.request, urllib.parse, urllib.error
 import urllib.request, urllib.error, urllib.parse
 import urllib.parse
+import time
 from weibo import Client
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
@@ -10,6 +11,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from code_verification import verify_user
 
 APP_KEY = '3544297892'
 APP_SECRET = '4e49761d581b7f80e0954a984e32a242'
@@ -63,6 +65,9 @@ class WeiboLogin():
 
         print('user name', user_input.get_attribute('value'))
         print('passwd', passwd_input.get_attribute('value'))
+        time.sleep(1) # wait the page to load the verification code
+        verify_user(self.driver, 'login')
+
         submit_button.click()
         try:
             WebDriverWait(self.driver, 10).until(
