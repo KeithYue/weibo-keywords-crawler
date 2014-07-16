@@ -9,7 +9,10 @@ import sys
 import random
 import json
 import codecs
+import requests
 import os
+from PIL import Image
+from io import BytesIO
 from bson import json_util
 from bs4 import BeautifulSoup
 from weibo import Client
@@ -19,6 +22,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from code_verification import verify_user
 from weibo_comments_crawler import WeiboCommentsCrawler
 
 search_domain = 's.weibo.com'
@@ -34,7 +38,7 @@ APP_SECRET = '4e49761d581b7f80e0954a984e32a242'
 CALLBACK_URI = 'http://lifecity.sinaapp.com'
 APP_DATA = (APP_KEY, APP_SECRET, CALLBACK_URI)
 
-USER_NAME = 'buaakeith@163.com'
+USER_NAME = '14714320465'
 PASSWD = '5805880'
 
 
@@ -69,6 +73,7 @@ class WeiboLogin():
             user_input.send_keys(self.username)
 
             passwd_input = self.driver.find_element_by_xpath('//div[@node-type="normal_form"]//input[@name="password"]')
+            passwd_input.click()
             passwd_input.clear()
             # print passwd_input
             passwd_input.send_keys(self.passwd)
@@ -76,16 +81,20 @@ class WeiboLogin():
             submit_button = self.driver.find_element_by_xpath('//div[@node-type="normal_form"]//a[@class="W_btn_g"]')
 
             self.driver.get_screenshot_as_file('./screenshot/screenshot.png')
-            submit_button.click()
         except TimeoutException:
             print('load login page failed')
             return False
+
+        print('user name', user_input.get_attribute('value'))
+        print('passwd', passwd_input.get_attribute('value'))
+        submit_button.click()
         try:
-            WebDriverWait(self.driver, 5).until(
+            WebDriverWait(self.driver, 10).until(
                     lambda x: x.find_element_by_class_name('WB_left_nav')
                     )
             print('login success')
             return True
+
         except TimeoutException:
             print('login failed', self.driver.current_url)
             self.driver.get_screenshot_as_file('./screenshot/login_failed.png')
@@ -124,7 +133,7 @@ class WeiboCrawler():
     '''
     crawl weibo using keywords
     '''
-    def __init__(self, search_key, user_name, passwd):
+    def __init__(self, search_key, user_name=USER_NAME, passwd=PASSWD):
         # login to sinaweibo
         self.driver = webdriver.PhantomJS()
         self.wl = WeiboLogin(user_name, passwd, self.driver) # the interface for authorization
@@ -147,7 +156,7 @@ class WeiboCrawler():
 
         page_count: how many pages would be crawled
         '''
-        results = []
+        self.results = []
         # get the mids from each result page
         pages = list(range(1, page_count+1))
         random.shuffle(pages)
@@ -166,20 +175,25 @@ class WeiboCrawler():
                     print('there is no weibo content in', url_to_crawl)
                     print('you are considered as a robot')
                     print(self.driver.current_url)
-                    save_source(self.driver.page_source)
                     self.driver.get_screenshot_as_file('./screenshot/error.png')
-                    break
+
+                    # let user input the verification code
+                    verify_user(self.driver)
+                    # break
+
+
                 weibo_list = self.get_weibo_list(self.driver.page_source) # mid is used to crawl the original weibo content, using batch mode
-                results.extend(weibo_list)
+                self.results.extend(weibo_list)
 
                 # sleep some time to prevent hitting too much
-                time.sleep(5)
+                # time.sleep(1)
+            else: continue
+            break
 
         # for r in results:
         #     print_dict(r)
-        print('total result', len(results))
+        print('total result', len(self.results))
 
-        self.results = results
 
         if comments:
             print('crawling the comments')
@@ -190,7 +204,7 @@ class WeiboCrawler():
         '''
         compose a search url based on page_num and weibo type
         '''
-        print('generating the url')
+        # print('generating the url')
         url=''
         url += 'http://'
         url += search_domain
@@ -325,7 +339,7 @@ def print_dict(d):
     d: dict
     '''
     for key in d:
-        print(key+':', end=' ')
+        print('{}:'.format(key), end=' ')
         if type(d[key]) == list:
             for i in d[key]:
                 print(i, end=' ')
@@ -336,7 +350,7 @@ def print_dict(d):
 
 
 def test():
-    wc = WeiboCrawler('港独', USER_NAME, PASSWD)
+    wc = WeiboCrawler('火影忍者', USER_NAME, PASSWD)
     wc.crawl(50, comments = False)
     wc.save()
     # wl = WeiboLogin(USER_NAME, PASSWD, driver)
