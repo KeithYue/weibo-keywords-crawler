@@ -19,10 +19,15 @@ class WeiboCommentsCrawler():
         page = 1
         while True:
             comments = c.get('comments/show', id=int(self.weibo_id), count = 200, page = page)
-            if len(comments['comments']) == 0:
+            # print(comments)
+            # print(type(comments))
+            if type(comments) is dict:
+                if len(comments['comments']) == 0:
+                    break
+                results.extend(comments['comments'])
+                page += 1
+            else:
                 break
-            results.extend(comments['comments'])
-            page += 1
 
         # print('comments number', len(results))
         return results

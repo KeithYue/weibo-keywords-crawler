@@ -249,7 +249,7 @@ class WeiboCrawler():
 
 def test():
     wc = WeiboCrawler('火影忍者', USER_NAME, PASSWD)
-    wc.crawl(50, comments = True)
+    wc.crawl(1, comments = True)
     wc.save()
     # wl = WeiboLogin(USER_NAME, PASSWD, driver)
     # c = wl.authorize_app(APP_DATA)
