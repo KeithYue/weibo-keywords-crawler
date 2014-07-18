@@ -7,6 +7,9 @@ weibo-keywords-crawler
 ### 更新说明
 *  *使用手动输入验证码的方式。目前爬虫有两处需要验证码：1，登陆时。2，搜索过于频繁时。爬虫当需要填写验证码的时候，会自动下载验证码并且使用本机默认的图像查看工具载入验证码，窗口会自动弹出。这时，只要根据终端的提示输入验证码即可。爬虫将会继续*
 
+### 问题反馈
+在[https://github.com/KeithYue/weibo-keywords-crawler/issues] (https://github.com/KeithYue/weibo-keywords-crawler/issues) 下面开一个Issue, assign 给我。
+
 ### 运行环境和相关依赖
 * Python3.0+
 * weibo sdk package:[https://pypi.python.org/pypi/weibo/0.1.2](https://pypi.python.org/pypi/weibo/0.1.2) (用来使用官方API获取评论内容，若只对微博内容感兴趣，可忽略)
