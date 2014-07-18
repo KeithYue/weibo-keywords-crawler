@@ -41,8 +41,8 @@ weibo-keywords-crawler
 
 ### 数据格式
 * 一条微博一个文件，存放在`.txt`文件中，`utf-8`编码，数据格式为`json`
+ 
 
-    
     {
       "repost_count": 11,
       "user_profile": "http://weibo.com/linewow",
