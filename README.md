@@ -20,6 +20,8 @@ weibo-keywords-crawler
 ### 使用方法
 * 配置`keyowords.txt`: 添加需要查询的关键字, 每行一个，如果是多关键词查询，每行用空格分开即可。
 * 配置`passwd.txt`: 配置爬虫所需要的用户名和密码，每行一个，用户名和密码用空格分开。
+* 运行`python main.py`: 启动爬虫，结果将存入`result`文件夹中。
+ 
 主要提供了WeiboCrawler类，用来进行微博搜索。
 
     
@@ -36,6 +38,28 @@ weibo-keywords-crawler
 
 ### 运行Demo
 `python main.py`。结果将存入resutls文件夹。
+
+### 数据格式
+* 一条微博一个文件，存放在`.txt`文件中，`utf-8`编码，数据格式为`json`
+
+    
+    {
+      "repost_count": 11,
+      "user_profile": "http://weibo.com/linewow",
+      "keywords": [
+        "hkust"
+      ],
+      "comment_count": 2,
+      "source_url": "http://weibo.com/1473473362/y2hsl74ca",
+      "text": "【名校之旅】Hong Kong University of Science and Technology (HKUST) is the top 40 universities in the world in 2011. （Website：http://t.cn/aooAzL）香港科技大学，2011年世界大学排名前40.",
+      "screen_name": "线话英语",
+      "source": "微博 weibo.com",
+      "created_at": {
+        "$date": 1327431857000
+      },
+      "mid": "3405437611684426",
+      "like_count": 0
+    }
 
 ### 注意事项
 * 该类只提供一次关键词的搜索，如果系统并行进行关键词的搜索，则需要自己编写多线程/进程的程序。
