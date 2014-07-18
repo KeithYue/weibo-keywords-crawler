@@ -10,6 +10,7 @@ import random
 import json
 import codecs
 import requests
+import logging
 import os
 from PIL import Image
 from io import BytesIO
@@ -53,9 +54,9 @@ class WeiboCrawler():
         self.wl = WeiboLogin(user_name, passwd, self.driver) # the interface for authorization
 
         if self.wl.login():
-            print('login successfully')
+            logging.info('login successfully')
         else:
-            print('login faied')
+            logging.info('login faied')
             sys.exit(1)
         self.sk = search_key.strip()
         return
@@ -78,7 +79,7 @@ class WeiboCrawler():
         for t in ('hot', 'time'):
             for i in pages:
                 url_to_crawl = self.get_search_url(i)
-                print('crawling page', i, url_to_crawl)
+                logging.info('crawling page {}:{}'.format(i, url_to_crawl))
                 self.driver.get(url_to_crawl)
                 # wait the page loading the content
                 try:
@@ -86,9 +87,9 @@ class WeiboCrawler():
                             lambda x: x.find_elements_by_class_name('feed_list')
                             )
                 except TimeoutException:
-                    print('there is no weibo content in', url_to_crawl)
-                    print('you are considered as a robot')
-                    print(self.driver.current_url)
+                    logging.info('there is no weibo content in {}'.format(url_to_crawl))
+                    logging.info('you are considered as a robot')
+                    logging.info(self.driver.current_url)
                     self.driver.get_screenshot_as_file('./screenshot/error.png')
 
                     # let user input the verification code
@@ -105,12 +106,12 @@ class WeiboCrawler():
             break
 
         # for r in results:
-        #     print_dict(r)
-        print('total result', len(self.results))
+        #     logging.info_dict(r)
+        logging.info('total result {}'.format(len(self.results)))
 
 
         if comments:
-            print('crawling the comments')
+            logging.info('crawling the comments')
             self.crawl_comments()
         return
 
@@ -118,7 +119,7 @@ class WeiboCrawler():
         '''
         compose a search url based on page_num and weibo type
         '''
-        # print('generating the url')
+        # logging.info('generating the url')
         url=''
         url += 'http://'
         url += search_domain
@@ -147,7 +148,7 @@ class WeiboCrawler():
                 weibo = self.parse_weibo(t)
                 if weibo:
                     weibo_list.append(weibo)
-        print(len(weibo_list))
+        logging.info('There are {} weibo on this page'.format(len(weibo_list)))
         return weibo_list
 
     def parse_weibo(self, t):
@@ -171,9 +172,9 @@ class WeiboCrawler():
             weibo['text'] = t.find(name='dd', class_='content').find('em').get_text().strip()
             # the source url of the weibo
             weibo['source_url'] = t.find(name='a', class_='date').get('href').strip()
-            print(weibo['source_url'])
+            logging.info(weibo['source_url'])
 
-            # print(weibo['text'])
+            # logging.info(weibo['text'])
 
             # meta data
             epoch_length = len(str(int(time.time())))
@@ -194,18 +195,18 @@ class WeiboCrawler():
                 pattern = re.compile(r'.*(%s\((\d+)\)).*' % key)
                 match = pattern.match(pop_str)
                 if match:
-                    # print match.group(1)
-                    # print match.group(2)
+                    # logging.info match.group(1)
+                    # logging.info match.group(2)
                     weibo[pop_type[key]] = int(match.group(2))
                 else:
-                    # print key, 'not found.'
+                    # logging.info key, 'not found.'
                     weibo[pop_type[key]] = 0
 
         except Exception as e:
-            print(e)
+            logging.info(e)
             return None
 
-        # print_dict(weibo)
+        # logging.info_dict(weibo)
         return weibo
 
     def save(self, dist_dir='result'):
@@ -222,8 +223,8 @@ class WeiboCrawler():
             file_name += '.txt'
             f = codecs.open(os.path.join(dist_dir, file_name), 'w', 'utf-8')
             json.dump(w, f, ensure_ascii = False, default=json_util.default, indent = 2)
-            # print(w['text'])
-            print('writed to file', file_name)
+            # logging.info(w['text'])
+            logging.info('writed to file {}'.format(file_name))
         return
 
     def crawl_comments(self):
@@ -233,7 +234,7 @@ class WeiboCrawler():
         client = self.wl.authorize_app()
         if client:
             for w in self.results:
-                # print(w['mid'])
+                # logging.info(w['mid'])
                 w['comments'] = []
                 crawler = WeiboCommentsCrawler(client, weibo_mid = w['mid'])
                 r = crawler.crawl()
@@ -243,7 +244,7 @@ class WeiboCrawler():
                     c.pop('status')
                 w['comments'].extend(r)
         else:
-            print('认证失败，不能获取评论列表')
+            logging.info('认证失败，不能获取评论列表')
         return
 
 def test():
@@ -252,7 +253,7 @@ def test():
     wc.save()
     # wl = WeiboLogin(USER_NAME, PASSWD, driver)
     # c = wl.authorize_app(APP_DATA)
-    # print c.get('users/show', uid=1282440983)
+    # logging.info c.get('users/show', uid=1282440983)
 
 if __name__ == '__main__':
     test()

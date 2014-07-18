@@ -1,17 +1,17 @@
 # coding=utf-8
 import base64
 import time
+import logging
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import NoSuchElementException
 from PIL import Image
 from io import StringIO, BytesIO
-from threading import Lock
-from synchronize_util import synchronized
+from synchronize_util import synchronized, CONSOLE_LOCK
 
 # This module is for code verification
 
-VERIFY_LOCK = Lock() # Every time there would be only one input propmt for users
+# Every time there would be only one for users
 
 get_image_data = '''
 function getBase64Image(img) {
@@ -94,7 +94,7 @@ def verify_user_for_search(driver):
         else:
             break
 
-    print('verification completed!')
+    logging.info('verification completed!')
     return
 
 def verify_user_for_login(driver):
@@ -102,29 +102,34 @@ def verify_user_for_login(driver):
     因为使用循环登陆，所以此验证码只保证一次，与搜索验证码的情况不同
     '''
     if not driver.find_element_by_xpath('//img[@node-type="verifycode_image"]'):
-        print('There is no verfication code here, continue')
+        logging.info('There is no verfication code here, continue')
         return
     else:
-        # get png, the image instance of PIL
-        png_element = driver.find_element_by_xpath('//img[@node-type="verifycode_image"]')
-        location = png_element.location
-        size = png_element.size
-        im = get_img(driver.get_screenshot_as_base64())
-        left = location['x']
-        top = location['y']
-        right = location['x'] + size['width']
-        bottom = location['y'] + size['height']
-        im = im.crop((left, top, right, bottom)) # defines crop points
+        try:
+            # get png, the image instance of PIL
+            png_element = driver.find_element_by_xpath('//img[@node-type="verifycode_image"]')
+            location = png_element.location
+            size = png_element.size
+            logging.info('vrcode: location--{}, size--{}'.format(location, size))
+            im = get_img(driver.get_screenshot_as_base64())
+            left = location['x']
+            top = location['y']
+            right = location['x'] + size['width']
+            bottom = location['y'] + size['height']
+            im = im.crop((left, top, right, bottom)) # defines crop points
 
-        verification_code = get_code(im)
+            verification_code = get_code(im)
 
-        code_input = driver.find_element_by_xpath('//input[@name="verifycode"]')
-        code_input.click()
-        code_input.send_keys(verification_code.strip())
+            code_input = driver.find_element_by_xpath('//input[@name="verifycode"]')
+            code_input.click()
+            code_input.send_keys(verification_code.strip())
+        except Exception as e:
+            driver.get_screenshot_as_file('./screenshot/login_failed.png')
+            logging.info('error, filed savedd to ./screenshot/login_failed.png')
         return
 
 
-@synchronized(VERIFY_LOCK) # this method is primitive
+@synchronized(CONSOLE_LOCK) # this method is primitive
 def verify_user(driver, v_type):
     '''
     v_type: string, 'search', 'login'
@@ -134,7 +139,7 @@ def verify_user(driver, v_type):
     elif v_type == 'login':
         verify_user_for_login(driver)
     else:
-        print('Unknown verification type')
+        logging.info('Unknown verification type')
         return
 
 
