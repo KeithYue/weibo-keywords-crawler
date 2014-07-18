@@ -18,9 +18,12 @@ weibo-keywords-crawler
 * 安装phantomJS, 并且添加到系统PATH中。
 
 ### 使用方法
+* `git clone https://github.com/KeithYue/weibo-keywords-crawler.git`.
+* `cd weibo-keywords-crawler`
 * 配置`keyowords.txt`: 添加需要查询的关键字, 每行一个，如果是多关键词查询，每行用空格分开即可。
 * 配置`passwd.txt`: 配置爬虫所需要的用户名和密码，每行一个，用户名和密码用空格分开。
 * 运行`python main.py`: 启动爬虫，结果将存入`result`文件夹中。
+* 爬虫日志会放在`./weibo_crawler.log`中，若需要动态查看爬虫行为：'tail -f ./weibo_crawler.log'
  
 主要提供了WeiboCrawler类，用来进行微博搜索。
 
