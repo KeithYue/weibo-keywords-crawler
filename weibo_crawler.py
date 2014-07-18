@@ -244,12 +244,12 @@ class WeiboCrawler():
                     c.pop('status')
                 w['comments'].extend(r)
         else:
-            logging.info('认证失败，不能获取评论列表')
+            logging.error('认证失败，不能获取评论列表')
         return
 
 def test():
     wc = WeiboCrawler('火影忍者', USER_NAME, PASSWD)
-    wc.crawl(50, comments = False)
+    wc.crawl(50, comments = True)
     wc.save()
     # wl = WeiboLogin(USER_NAME, PASSWD, driver)
     # c = wl.authorize_app(APP_DATA)

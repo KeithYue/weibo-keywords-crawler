@@ -26,7 +26,7 @@ def load_users(path='./passwd.txt'):
 def crawl(keywords):
     try:
         wc = WeiboCrawler(keywords, *random.choice(g_users))
-        wc.crawl(50, comments = False)
+        wc.crawl(50, comments = True)
     finally:
         wc.save()
     return True

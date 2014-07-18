@@ -24,7 +24,7 @@ class WeiboCommentsCrawler():
             results.extend(comments['comments'])
             page += 1
 
-        print('comments number', len(results))
+        # print('comments number', len(results))
         return results
 
     def save(self):

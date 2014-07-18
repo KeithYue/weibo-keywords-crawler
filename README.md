@@ -11,7 +11,7 @@ weibo-keywords-crawler
 在[https://github.com/KeithYue/weibo-keywords-crawler/issues] (https://github.com/KeithYue/weibo-keywords-crawler/issues) 下面开一个Issue, assign 给我。
 
 ### 运行环境和相关依赖
-* Python3.0+
+* Python3.4
 * weibo sdk package:[https://pypi.python.org/pypi/weibo/0.1.2](https://pypi.python.org/pypi/weibo/0.1.2) (用来使用官方API获取评论内容，若只对微博内容感兴趣，可忽略)
 * selenium
 * phantomJS:[http://phantomjs.org/](http://phantomjs.org/) (用来模拟浏览器抓取微博，必须放置再系统PATH中)
@@ -70,3 +70,4 @@ weibo-keywords-crawler
 ### 注意事项
 * 该类只提供一次关键词的搜索，如果系统并行进行关键词的搜索，则需要自己编写多线程/进程的程序。
 * 由于目前不支持机器自动识别验证码，所以需要验证码时程序会自动载入并且使用图片查看工具进行显示，所以目前爬虫不能在没有GUI界面的server上运行。
+* 由于搜索结果最多有五十页，每页最多20条微博，所以对于每个关键词，每次执行最多只能获取1000条微博。
