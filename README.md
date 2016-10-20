@@ -35,7 +35,7 @@ weibo-keywords-crawler
     from weibo_crawler import WeiboCrawler
 
     def main():
-        wc = WeiboCrawler('大数据', 'buaakeith@163.com', '5805880') # 三个参数：关键词（可以用空格分开），爬虫使用的用户名，爬虫使用的密码
+        wc = WeiboCrawler('大数据', '***', '***') # 三个参数：关键词（可以用空格分开），爬虫使用的用户名，爬虫使用的密码
         wc.crawl(page_count=1, comments = True) # page_count:获取结果的总页数, 默认为1，最高为50。comments:是否抓取评论数据，默认为False
         wc.save() # 存储结果
         return
